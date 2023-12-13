@@ -1,9 +1,9 @@
-import mongoose from "mongoose";
+import mongoose from 'mongoose';
 
 export const connectMongoDB = async () => {
     try {
         await mongoose.connect(
-            "mongodb+srv://ppqita:santri@ppqitadb.9ybiiar.mongodb.net/mynotes",
+            'mongodb+srv://mnadhif:9841185n@cluster0.jp7etyc.mongodb.net/mynotes',
             {
                 useNewUrlParser: true,
                 useUnifiedTopology: true,
