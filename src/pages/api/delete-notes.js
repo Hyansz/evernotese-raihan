@@ -1,46 +1,51 @@
-import {connectionDB} from "@/db/mongodb"
-import Note from "@/models/notes"
-import User from "@/models/users"
-import { getCookies, getCookie, setCookie, deleteCookie } from 'cookies-next';
+import { connectMongoDB } from "@/db/mongoDB";
+import NoteModel from "@/models/notes";
+import { verifyToken } from "@/utils/auth";
+import { getCookies } from "cookies-next";
 
-connectionDB();
+connectMongoDB();
 
-export default async function handler(req,res) {
+export default async function handler(req, res) {
     try {
-
-        if(req.method !== 'DELETE' ) {
-            return res.status(405).json({ error: true, message: 'Salah method'})
+        if (req.method !== "DELETE") {
+            return res
+                .status(405)
+                .json({ error: true, message: "Metode tidak diizinkan" });
         }
 
-        const token = req.headers.authorization
-        if(!token) {
-            return res.status(400).json({ error: true, message: 'Tidak ada token'})
+        const { token } = getCookies({ req });
+        const { user_id } = verifyToken(token);
+
+        const { id } = req.query;
+
+        const note = await NoteModel.findById(id);
+
+        if (!note) {
+            return res
+                .status(404)
+                .json({ error: true, message: "Catatan tidak ditemukan" });
         }
 
-        const user = await User.findOne({token})
-        console.log('user: ', user)
-        if (!user || !user.name) {
-            deleteCookie('token', {req,res})
-            return res.status(400).json({
-              error: true,
-              message: 'token tidak valid',
-            });
+        if (note.user_id !== user_id) {
+            return res
+                .status(403)
+                .json({
+                    error: true,
+                    message: "Anda tidak diizinkan menghapus catatan ini",
+                });
         }
 
-        const notesId = req.query.id
-        if(!notesId) {
-            return res.status(400).json({ error: true, message: 'Id tugas tidak diberikan'})
-        }
+        await note.remove();
 
-        const deletedTask = await Tasks.findByIdAndDelete(notesId);
-        if (!deletedTask) {
-            return res.status(404).json({ error: true, message: "Tugas tidak ditemukan" });
-        }
-
-        return res.status(201).json({message:"Tugas sudah di hapus"})
-
-    } catch(err) {
-        console.log('error: ', err)
-        res.status(500).json({ error: true, message: 'ada masalah harap hubungi developer' });
+        res.status(200).json({
+            success: true,
+            message: "Catatan berhasil dihapus",
+        });
+    } catch (error) {
+        console.error("Error:", error);
+        res.status(500).json({
+            error: true,
+            message: "Terjadi Kesalahan Internal Server",
+        });
     }
 }

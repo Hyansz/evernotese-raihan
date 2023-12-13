@@ -1,147 +1,122 @@
-import styles from "@/styles/reglog.module.css";
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";  
+import styles from "@/styles/Login.module.css";
+import { dmSans } from "@/styles/fonts";
+import { useState } from "react";
+import { useRouter } from "next/router";
+import Link from "next/link";
 
-export default function login() {
-  const router = useRouter();
+export default function Login() {
+    const router = useRouter();
 
-  const [name, setName] = useState('');;
-  const [password, setPassword] = useState('');
-  const [isKeepLogin, setKeepLogin] = useState(false);
+    const [username, setUsername] = useState("");
+    const [password, setPassword] = useState("");
+    const [isKeepLogin, setKeepLogin] = useState(false);
+    const [error, setError] = useState("");
 
-  const handleRegistration = async () => {
-    const data = { name, password, isKeepLogin };
-    console.log('click daftar by: ', data);
+    const handleLogin = async (e) => {
+        try {
+            e.preventDefault();
 
-    try {
-      const res = await fetch('/api/login', {
-        method: 'POST',
-        body: JSON.stringify(data),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+            if (!username || !password) {
+                setError("Username dan password harus diisi");
+                return;
+            }
 
-      const responseData = await res.json(); // Mendapatkan data JSON dari respons
+            const data = { username, password, isKeepLogin };
 
-      if (res.ok) {
-        // Periksa apakah respons memiliki status code 200 (OK)
-        console.log('responsData: ',responseData);
-        localStorage.setItem('keepLogin', responseData.isKeepLogin)
+            const res = await fetch("/api/login", {
+                method: "POST",
+                body: JSON.stringify(data),
+                headers: {
+                    "Content-Type": "application/json",
+                },
+            });
+            const responseData = await res.json();
 
-        if(!responseData.isKeepLogin) {
-          sessionStorage.setItem('token',responseData.token)
+            if (res.ok) {
+                localStorage.setItem("keepLogin", responseData.isKeepLogin);
+
+                if (!responseData.isKeepLogin) {
+                    sessionStorage.setItem("token", responseData.token);
+                }
+
+                alert("Sukses login");
+                router.push("/dashboard");
+            } else {
+                setError(responseData.message);
+            }
+        } catch (error) {
+            console.log("error: ", error);
+            alert("Terjadi Kesalahan, harap hubungi tim support");
         }
+    };
 
-        alert('Berhasil login');
-        router.push('/dashboard');
-      } else {
-        console.error('Gagal melakukan permintaan:', res.status);
-        console.log(responseData)
-        alert(responseData.message);
-      }
-    } catch (error) {
-      console.log('error: ', error);
-      alert('Terjadi Kesalahan, harap hubungi tim support');
-    }
-  }
-
-  return (
-    <div className={styles.font}
-      style={{
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center"
-      }}
-    >
-      <div style={{
-        border:"solid silver 2px",
-        boxShadow: "rgba(0, 0, 0, 0.15) 1.95px 1.95px 2.6px",
-        color: "black",
-        borderRadius: "8px",
-        padding: "20px",
-        width: "40%"
-      }}>
-
-        <div>
-          <h2>Login</h2>
-
-          <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-
-            <div>
-              <h3 className={styles.h3}>Name <span style={{ color: 'blue' }}>*</span> </h3>
-              <input
-                className={styles.bodra}
-                style={{
-                  width: "70%",
-                  marginTop: "4px",
-                  padding: "10px 5px",
-                  border: "2px solid silver"
-                }}
-                placeholder="Name"
-                onChange={(e) => {
-                    setName(e.target.value)
-                }}
-              />
+    return (
+        <div className={`${styles["signin-container"]} ${dmSans.className}`}>
+            <div className={styles["signin-box"]}>
+                <h2 className={styles["signin-title"]}>Masuk</h2>
+                <form className={styles["signin-form"]}>
+                    <p className={styles["sign-p"]}>
+                        Masukkan username dan kata sandi Anda untuk masuk!
+                    </p>
+                    <div className={styles["form-group"]}>
+                        <label
+                            className={styles["form-label"]}
+                            htmlFor="username">
+                            Username<span className={styles["star"]}>*</span>
+                        </label>
+                        <input
+                            className={`${styles["form-input"]} ${styles["transparent-border"]}`}
+                            placeholder="username"
+                            value={username}
+                            onChange={(e) => setUsername(e.target.value)}
+                        />
+                    </div>
+                    <div className={styles["form-group"]}>
+                        <label
+                            className={styles["form-label"]}
+                            htmlFor="password">
+                            Password<span className={styles["star"]}>*</span>
+                        </label>
+                        <input
+                            className={`${styles["form-input"]} ${styles["transparent-border"]}`}
+                            placeholder="******"
+                            type="password"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                        />
+                    </div>
+                    <div className={styles["checkbox-container"]}>
+                        <input
+                            type="checkbox"
+                            checked={isKeepLogin}
+                            onChange={(e) => {
+                                setKeepLogin(e.target.checked);
+                            }}
+                            className={styles["checkbox-input"]}
+                        />
+                        <span style={{ marginBottom: "5px" }}>
+                            {" "}
+                            Keep Me Logged In
+                        </span>
+                    </div>
+                    <button
+                        className={styles["signin-button"]}
+                        onClick={handleLogin}>
+                        Masuk
+                    </button>
+                    {error && (
+                        <p className={styles["error-message"]}>{error}</p>
+                    )}
+                </form>
+                <div className={styles["signup-link"]}>
+                    <p>
+                        Belum punya akun?{" "}
+                        <Link href="/registration" className={styles["create"]}>
+                            Buat Akun
+                        </Link>
+                    </p>
+                </div>
             </div>
-
-            <div>
-              <h3 className={styles.h3}>Password <span style={{ color: 'blue' }}>*</span> </h3>
-              <input
-                className={styles.bodra}
-                style={{
-                  width: "70%",
-                  marginTop: "4px",
-                  padding: "10px 5px",
-                  border: "2px solid silver"
-                }}
-                type="password"
-                placeholder="*******"
-                onChange={(e) => {
-                  setPassword(e.target.value)
-                }}
-              />
-            </div>
-        
-            <div>
-              <input
-                type="checkbox"
-                onChange={(e) => {
-                  console.log(e.target.checked);
-                  let isChecked = e.target.checked;
-                  localStorage.setItem('keepLogin', isChecked);
-                  setKeepLogin(isChecked);
-                }}
-              ></input>
-              <span> Keep Me Logged In</span>
-            </div>
-
-            <button
-              className={styles.bodra}
-              style={{
-                width: "72%",
-                marginTop: "15px",
-                padding: "15px 20px",
-                backgroundColor: "blue",
-                color: "white",
-                fontWeight: "600",
-                border: "2px solid blue"
-              }}
-              onClick={handleRegistration}
-            >
-              Login
-            </button>
-
-            <div>
-            <p>Belum punya akun? <a href="/registrasi" style={{color:"blue"}}>Buat akun baru</a> </p>
-            </div>
-
-          </div>
-
         </div>
-
-      </div>
-
-    </div>
-  );
+    );
 }

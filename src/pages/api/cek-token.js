@@ -10,16 +10,18 @@ export default async function handler(req, res) {
     const { token } = req.body;
 
     try {
-        // Hapus token dari pengguna
+        // Periksa apakah token ada di database
         const user = await UserModel.findOne({ token });
         if (user) {
-            user.token = undefined;
-            await user.save();
+            res.status(200).json({ valid: true, message: "Token valid" });
+        } else {
+            res.status(401).json({
+                valid: false,
+                message: "Token tidak valid",
+            });
         }
-
-        res.status(200).json({ success: true, message: "Logout berhasil" });
     } catch (error) {
-        console.error("Logout gagal:", error);
+        console.error("Error saat memeriksa token:", error);
         res.status(500).json({
             error: true,
             message: "Kesalahan Server Internal",

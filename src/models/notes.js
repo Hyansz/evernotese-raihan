@@ -1,30 +1,36 @@
 import mongoose from "mongoose";
 
-const taskSchema = new mongoose.Schema({
+const noteSchema = new mongoose.Schema({
     title: {
-        type:String,
-        require:true,
+        type: String,
+        required: true,
+        minlength: 3,
+        maxlength: 60,
     },
     note: {
-        type:String,
-        require:true,
+        type: String,
+        maxlength: 2000,
     },
-    user: {
+    user_id: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
+        ref: "User",
         required: true,
     },
-    createdAt: {
+    date: {
         type: Date,
         default: Date.now,
     },
-})
+});
 
-let taskModel;
-if(mongoose.models.Notes) {
-    taskModel = mongoose.model('Notes')
+let NoteModel;
+
+// Cek apakah model 'Note' sudah ada
+if (mongoose.models.Note) {
+    // Jika sudah ada, gunakan kembali model yang sudah ada
+    NoteModel = mongoose.model("Note");
 } else {
-    taskModel = mongoose.model('Notes', taskSchema)
+    // Jika belum ada, buat model 'Note'
+    NoteModel = mongoose.model("Note", noteSchema);
 }
 
-export default taskModel
+export default NoteModel;
