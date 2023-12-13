@@ -1,6 +1,6 @@
 import styles from "@/styles/reglog.module.css";
 import { useState } from "react";
-import { useRouter } from "next/navigation";  
+import { useRouter } from "next/router";  
 
 export default function registrasi() {
   const router = useRouter();
@@ -33,7 +33,7 @@ export default function registrasi() {
         alert('Data gagal didaftarkan');
       }
     } catch (error) {
-      console.log('error: ', error);
+      console.log('Error: ', error);
       alert('Terjadi Kesalahan, harap hubungi tim support');
     }
   }
