@@ -1,54 +1,122 @@
-// pages/login.js
-import { useRouter } from 'next/router';
-import React, { useState } from 'react';
+import styles from "@/styles/Login.module.css";
+import { dmSans } from "@/styles/fonts";
+import { useState } from "react";
+import { useRouter } from "next/router";
+import Link from "next/link";
 
-const Login = () => {
+export default function Login() {
     const router = useRouter();
-    const [username, setUsername] = useState('');
-    const [password, setPassword] = useState('');
 
-    const handleLogin = async () => {
-        const data = {
-            username,
-            password,
-        };
+    const [username, setUsername] = useState("");
+    const [password, setPassword] = useState("");
+    const [isKeepLogin, setKeepLogin] = useState(false);
+    const [error, setError] = useState("");
 
+    const handleLogin = async (e) => {
         try {
-            const response = await fetch('/api/login', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+            e.preventDefault();
+
+            if (!username || !password) {
+                setError("Username dan password harus diisi");
+                return;
+            }
+
+            const data = { username, password, isKeepLogin };
+
+            const res = await fetch("/api/login", {
+                method: "POST",
                 body: JSON.stringify(data),
+                headers: {
+                    "Content-Type": "application/json",
+                },
             });
+            const responseData = await res.json();
 
-            if (response.ok) {
-                const responseData = await response.json();
-                console.log('Login successful:', responseData);
+            if (res.ok) {
+                localStorage.setItem("keepLogin", responseData.isKeepLogin);
 
-                // Simpan token ke localStorage atau cookie jika diperlukan
-                // Arahkan pengguna ke halaman catatan setelah login
-                router.push('/notes/create');
+                if (!responseData.isKeepLogin) {
+                    sessionStorage.setItem("token", responseData.token);
+                }
+
+                alert("Sukses login");
+                router.push("/dashboard");
             } else {
-                throw new Error(`Login failed with status: ${response.status}`);
+                setError(responseData.message);
             }
         } catch (error) {
-            console.error('Error during login:', error);
+            console.log("error: ", error);
+            alert("Terjadi Kesalahan, harap hubungi tim support");
         }
     };
 
     return (
-        <div>
-            <h1>Login</h1>
-            <label>Username:</label>
-            <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} />
-            <br />
-            <label>Password:</label>
-            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
-            <br />
-            <button onClick={handleLogin}>Login</button>
+        <div className={`${styles["signin-container"]} ${dmSans.className}`}>
+            <div className={styles["signin-box"]}>
+                <h2 className={styles["signin-title"]}>Masuk</h2>
+                <form className={styles["signin-form"]}>
+                    <p className={styles["sign-p"]}>
+                        Masukkan username dan kata sandi Anda untuk masuk!
+                    </p>
+                    <div className={styles["form-group"]}>
+                        <label
+                            className={styles["form-label"]}
+                            htmlFor="username">
+                            Username<span className={styles["star"]}>*</span>
+                        </label>
+                        <input
+                            className={`${styles["form-input"]} ${styles["transparent-border"]}`}
+                            placeholder="username"
+                            value={username}
+                            onChange={(e) => setUsername(e.target.value)}
+                        />
+                    </div>
+                    <div className={styles["form-group"]}>
+                        <label
+                            className={styles["form-label"]}
+                            htmlFor="password">
+                            Password<span className={styles["star"]}>*</span>
+                        </label>
+                        <input
+                            className={`${styles["form-input"]} ${styles["transparent-border"]}`}
+                            placeholder="******"
+                            type="password"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                        />
+                    </div>
+                    <div className={styles["checkbox-container"]}>
+                        <input
+                            type="checkbox"
+                            checked={isKeepLogin}
+                            onChange={(e) => {
+                                setKeepLogin(e.target.checked);
+                            }}
+                            className={styles["checkbox-input"]}
+                        />
+                        <span style={{ marginBottom: "5px" }}>
+                            {" "}
+                            Keep Me Logged In
+                        </span>
+                    </div>
+                    <button
+                        className={styles["signin-button"]}
+                        onClick={handleLogin}>
+                        Masuk
+                    </button>
+                    {error && (
+                        <p className={styles["error-message"]}>{error}</p>
+                    )}
+                </form>
+                <div className={styles["signup-link"]}>
+                    <p>
+                        Belum punya akun?{" "}
+                        <Link href="/registration" className={styles["create"]}>
+                            Buat Akun
+                        </Link>
+                    </p>
+                </div>
+            </div>
         </div>
     );
-};
-
-export default Login;
+}
