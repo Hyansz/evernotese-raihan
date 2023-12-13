@@ -5,15 +5,16 @@ import { useRouter } from "next/navigation";
 export default function login() {
 
   return (
-    <div className={styles.font}
-      style={{
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center"
-      }}
-    >
+    <div className={styles.font}>
     
-      <div>
+      <div style={{
+        display: "flex",
+        gap: "20px",
+        width: "100%",
+        flexDirection: "row",
+        justifyContent: "space-evenly",
+        alignItems: "center"
+      }}>
         <div>
             <p>Buat notes</p>
             <a href="/createNotes">click</a>
